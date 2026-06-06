@@ -1,5 +1,4 @@
-// user-service/src/controllers/user.controller.js
-// Gère les requêtes HTTP, délègue la logique au service
+
 
 const UserService = require('../services/user.service');
 
@@ -15,14 +14,22 @@ const UserController = {
   },
 
   // GET /api/users/:id
-  getById: (req, res, next) => {
-    try {
-      const user = UserService.getUserById(req.params.id);
-      res.json({ success: true, data: user });
-    } catch (err) {
-      next(err);
+getById: (req, res, next) => {
+  try {
+    const user = UserService.getUserById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
     }
-  },
+
+    res.json({ success: true, data: user });
+  } catch (err) {
+    next(err);
+  }
+},
 
   // POST /api/users
   create: (req, res, next) => {
