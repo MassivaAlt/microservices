@@ -1,0 +1,21 @@
+{
+  "name": "microservices-starter",
+  "version": "1.0.0",
+  "description": "Node.js microservices starter template with API Gateway",
+  "scripts": {
+    "start:gateway": "cd api-gateway && npm start",
+    "start:users": "cd services/user-service && npm start",
+    "start:products": "cd services/product-service && npm start",
+    "start:orders": "cd services/order-service && npm start",
+    "dev:gateway": "cd api-gateway && npm run dev",
+    "dev:users": "cd services/user-service && npm run dev",
+    "dev:products": "cd services/product-service && npm run dev",
+    "dev:orders": "cd services/order-service && npm run dev",
+    "install:all": "cd api-gateway && npm install && cd ../services/user-service && npm install && cd ../product-service && npm install && cd ../order-service && npm install"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  }
+}
