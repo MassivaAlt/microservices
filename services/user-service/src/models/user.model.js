@@ -18,16 +18,16 @@ const UserModel = {
 
   findByEmail: async (email) => {
     const result = await db.query(
-      'SELECT id, name, email, created_at AS "createdAt" FROM users WHERE email = $1',
+      'SELECT id, name, email, password_hash AS "passwordHash", created_at AS "createdAt" FROM users WHERE email = $1',
       [email]
     );
     return result.rows[0] || null;
   },
 
-  create: async ({ name, email }) => {
+  create: async ({ name, email, passwordHash }) => {
     const result = await db.query(
-      'INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id, name, email, created_at AS "createdAt"',
-      [name, email]
+      'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email, created_at AS "createdAt"',
+      [name, email, passwordHash]
     );
     return result.rows[0];
   },

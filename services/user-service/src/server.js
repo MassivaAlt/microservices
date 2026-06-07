@@ -7,6 +7,7 @@ const config = require('./config');
 const logger = require('./logger');
 const requestLogger = require('./middlewares/requestLogger');
 const userRoutes = require('./routes/user.routes');
+const authRoutes = require('./routes/auth.routes');
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.get('/health', (req, res) => {
   });
 });
 
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 
 app.use((req, res) => {

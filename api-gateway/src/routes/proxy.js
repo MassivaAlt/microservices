@@ -4,12 +4,25 @@
 const { Router } = require('express');
 const proxy = require('express-http-proxy');
 const config = require('../config');
+const { protect } = require('../middlewares/auth.middleware');
 
 const router = Router();
 
-//    Proxy vers User Service                                        
-// Toutes les requêtes /api/users/* sont redirigées vers user-service
-router.use('/users', proxy(config.services.user, {
+// Public auth endpoints proxied to user-service
+router.use('/auth', proxy(config.services.user, {
+  proxyReqPathResolver: (req) => `/api/auth${req.url}`,
+  proxyErrorHandler: (err, res, next) => {
+    console.error('[Gateway] Auth proxy error:', err.message);
+    res.status(503).json({ success: false, error: 'User Service unavailable' });
+  },
+}));
+
+// Protect certain user routes (GET, PUT, DELETE)
+router.use('/users', (req, res, next) => {
+  const protectedMethods = ['GET', 'PUT', 'DELETE'];
+  if (protectedMethods.includes(req.method)) return protect()(req, res, next);
+  return next();
+}, proxy(config.services.user, {
   proxyReqPathResolver: (req) => `/api/users${req.url}`,
   proxyErrorHandler: (err, res, next) => {
     console.error('[Gateway] User Service unreachable:', err.message);
@@ -26,8 +39,8 @@ router.use('/products', proxy(config.services.product, {
   },
 }));
 
-//    Proxy vers Order Service                                       
-router.use('/orders', proxy(config.services.order, {
+// Protect all order routes
+router.use('/orders', protect(), proxy(config.services.order, {
   proxyReqPathResolver: (req) => `/api/orders${req.url}`,
   proxyErrorHandler: (err, res, next) => {
     console.error('[Gateway] Order Service unreachable:', err.message);

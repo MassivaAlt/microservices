@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR NOT NULL,
   email VARCHAR UNIQUE NOT NULL,
+  password_hash TEXT,
   created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now()
 );
 
