@@ -5,7 +5,7 @@ const morgan = require('morgan');
 const userRoutes = require('./routes/user.routes');
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 // middlewares
 app.use(cors());
@@ -39,8 +39,26 @@ app.use((err, req, res, next) => {
 });
 
 // start
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`User Service running on port ${PORT}`);
 });
+
+// Graceful shutdown
+const shutdown = (signal) => {
+  console.log(`Received ${signal} - closing user-service`);
+  server.close(() => {
+    console.log('User Service stopped');
+    process.exit(0);
+  });
+
+  // Force exit after timeout
+  setTimeout(() => {
+    console.error('Forcing shutdown');
+    process.exit(1);
+  }, 30000);
+};
+
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
 
 module.exports = app;

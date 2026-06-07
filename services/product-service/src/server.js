@@ -9,33 +9,50 @@ const productRoutes = require('./routes/product.routes');
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-// ── Middlewares ───────────────────────────────────────────────────
+//    Middlewares                                                    
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 
-// ── Health check (utilisé par le Gateway) ────────────────────────
+//    Health check (utilisé par le Gateway)                         
 app.get('/health', (req, res) => {
   res.json({ service: 'product-service', status: 'up', timestamp: new Date().toISOString() });
 });
 
-// ── Routes ────────────────────────────────────────────────────────
+//    Routes                                                         
 app.use('/api/products', productRoutes);
 
-// ── 404 ───────────────────────────────────────────────────────────
+//    404                                                            
 app.use((req, res) => {
   res.status(404).json({ success: false, error: 'Route not found' });
 });
 
-// ── Error handler ─────────────────────────────────────────────────
+//    Error handler                                                  
 app.use((err, req, res, next) => {
   console.error(`[product-service ERROR] ${err.message}`);
   res.status(err.status || 500).json({ success: false, error: err.message || 'Internal Server Error' });
 });
 
-// ── Start ─────────────────────────────────────────────────────────
-app.listen(PORT, () => {
+//    Start                                                          
+const server = app.listen(PORT, () => {
   console.log(`📦 Product Service running on http://localhost:${PORT}`);
 });
+
+// Graceful shutdown
+const shutdown = (signal) => {
+  console.log(`Received ${signal} - closing product-service`);
+  server.close(() => {
+    console.log('Product Service stopped');
+    process.exit(0);
+  });
+
+  setTimeout(() => {
+    console.error('Forcing shutdown');
+    process.exit(1);
+  }, 30000);
+};
+
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
 
 module.exports = app;

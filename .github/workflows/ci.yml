@@ -16,5 +16,25 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install dependencies for all services
+        run: npm run install:all
+
+      - name: Run tests (API Gateway)
+        run: |
+          cd api-gateway
+          npm test
+
+      - name: Run tests (User Service)
+        run: |
+          cd services/user-service
+          npm test
+
+      - name: Run tests (Product Service)
+        run: |
+          cd services/product-service
+          npm test
+
+      - name: Run tests (Order Service)
+        run: |
+          cd services/order-service
+          npm test

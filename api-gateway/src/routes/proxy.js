@@ -7,7 +7,7 @@ const config = require('../config');
 
 const router = Router();
 
-// ── Proxy vers User Service ───────────────────────────────────────
+//    Proxy vers User Service                                        
 // Toutes les requêtes /api/users/* sont redirigées vers user-service
 router.use('/users', proxy(config.services.user, {
   proxyReqPathResolver: (req) => `/api/users${req.url}`,
@@ -17,7 +17,7 @@ router.use('/users', proxy(config.services.user, {
   },
 }));
 
-// ── Proxy vers Product Service ────────────────────────────────────
+//    Proxy vers Product Service                                     
 router.use('/products', proxy(config.services.product, {
   proxyReqPathResolver: (req) => `/api/products${req.url}`,
   proxyErrorHandler: (err, res, next) => {
@@ -26,7 +26,7 @@ router.use('/products', proxy(config.services.product, {
   },
 }));
 
-// ── Proxy vers Order Service ──────────────────────────────────────
+//    Proxy vers Order Service                                       
 router.use('/orders', proxy(config.services.order, {
   proxyReqPathResolver: (req) => `/api/orders${req.url}`,
   proxyErrorHandler: (err, res, next) => {
