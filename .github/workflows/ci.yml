@@ -2,11 +2,34 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main", "develop"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: microservices
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/microservices
+      JWT_SECRET: test_secret_key
+      JWT_EXPIRES_IN: 1d
+      NODE_ENV: test
 
     steps:
       - uses: actions/checkout@v3
@@ -16,25 +39,34 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install dependencies for all services
-        run: npm run install:all
-
-      - name: Run tests (API Gateway)
+      - name: Install API Gateway
         run: |
           cd api-gateway
-          npm test
+          npm install
 
-      - name: Run tests (User Service)
+      - name: Install User Service
         run: |
           cd services/user-service
-          npm test
+          npm install
 
-      - name: Run tests (Product Service)
+      - name: Install Product Service
         run: |
           cd services/product-service
-          npm test
+          npm install
 
-      - name: Run tests (Order Service)
+      - name: Install Order Service
         run: |
           cd services/order-service
-          npm test
+          npm install
+
+      - name: Run API Gateway tests
+        run: cd api-gateway && npm test
+
+      - name: Run User Service tests
+        run: cd services/user-service && npm test
+
+      - name: Run Product Service tests
+        run: cd services/product-service && npm test
+
+      - name: Run Order Service tests
+        run: cd services/order-service && npm test
