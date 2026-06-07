@@ -10,6 +10,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const config = require('./config');
 const logger = require('./logger');
+const requestLogger = require('./middlewares/requestLogger');
 const proxyRoutes = require('./routes/proxy');
 const healthRoutes = require('./routes/health');
 const errorHandler = require('./middlewares/errorHandler');
@@ -37,15 +38,15 @@ app.use(morgan('combined', {
   },
 }));
 app.use(express.json());               // Parse le body JSON des requêtes
+app.use(requestLogger);
 
 // Request timeout (ms)
-const REQUEST_TIMEOUT_MS = config.requestTimeoutMs;
 app.use((req, res, next) => {
-  req.setTimeout(REQUEST_TIMEOUT_MS, () => {
+  req.setTimeout(config.requestTimeoutMs, () => {
     logger.warn('Gateway request timed out', {
       method: req.method,
       url: req.url,
-      timeoutMs: REQUEST_TIMEOUT_MS,
+      timeoutMs: config.requestTimeoutMs,
       correlationId: req.correlationId,
     });
 
@@ -59,7 +60,7 @@ app.use((req, res, next) => {
 //    Routes                                                         
 app.get('/', (req, res) => {
   res.json({
-    message: ' API Gateway is running',
+    message: 'API Gateway is running',
     version: '1.0.0',
     endpoints: {
       health: '/health',
@@ -80,31 +81,5 @@ app.use((req, res) => {
 
 //    Gestion des erreurs globales                                   
 app.use(errorHandler);
-
-//    Démarrage du serveur                                           
-const server = app.listen(config.port, () => {
-  logger.info(`API Gateway running on http://localhost:${config.port}`, { service: config.serviceName });
-  logger.info('Proxy targets loaded', {
-    user: config.services.user,
-    product: config.services.product,
-    order: config.services.order,
-  });
-});
-
-// Graceful shutdown
-const shutdown = (signal) => {
-  logger.info(`Received ${signal} - closing api-gateway`, { service: config.serviceName });
-  server.close(() => {
-    logger.info('API Gateway stopped', { service: config.serviceName });
-  });
-
-  setTimeout(() => {
-    logger.error('Forcing shutdown', { service: config.serviceName });
-    process.exit(1);
-  }, 30000);
-};
-
-process.on('SIGINT', () => shutdown('SIGINT'));
-process.on('SIGTERM', () => shutdown('SIGTERM'));
 
 module.exports = app; // Export pour les tests

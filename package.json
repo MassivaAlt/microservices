@@ -11,7 +11,8 @@
     "dev:users": "cd services/user-service && npm run dev",
     "dev:products": "cd services/product-service && npm run dev",
     "dev:orders": "cd services/order-service && npm run dev",
-    "install:all": "cd api-gateway && npm install && cd ../services/user-service && npm install && cd ../product-service && npm install && cd ../order-service && npm install"
+    "install:all": "cd api-gateway && npm install && cd ../services/user-service && npm install && cd ../product-service && npm install && cd ../order-service && npm install",
+    "test:all": "cd api-gateway && npm test && cd ../services/user-service && npm test && cd ../product-service && npm test && cd ../order-service && npm test"
   },
   "author": "",
   "license": "MIT",
