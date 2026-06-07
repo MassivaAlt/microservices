@@ -7,6 +7,7 @@ COPY package*.json ./
 
 # Installer les dépendances
 RUN npm install
+RUN apk add --no-cache curl
 
 # Copier le reste du code
 COPY . .
