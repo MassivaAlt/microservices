@@ -1,5 +1,5 @@
 {
-  "name": "microservices-starter",
+  "name": "microservicesProject",
   "version": "1.0.0",
   "description": "Node.js microservices starter template with API Gateway",
   "scripts": {

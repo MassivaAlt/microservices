@@ -1,38 +1,66 @@
-
-
-const { v4: uuidv4 } = require('uuid');
-
-
-let users = [
-  { id: uuidv4(), name: 'Alice Martin', email: 'alice@example.com', createdAt: new Date().toISOString() },
-  { id: uuidv4(), name: 'Bob Dupont', email: 'bob@example.com', createdAt: new Date().toISOString() },
-];
+const db = require('../db');
 
 const UserModel = {
-  findAll: () => users,
-
-  findById: (id) => users.find((u) => u.id === id),
-
-  findByEmail: (email) => users.find((u) => u.email === email),
-
-  create: ({ name, email }) => {
-    const user = { id: uuidv4(), name, email, createdAt: new Date().toISOString() };
-    users.push(user);
-    return user;
+  findAll: async () => {
+    const result = await db.query(
+      'SELECT id, name, email, created_at AS "createdAt" FROM users ORDER BY created_at DESC'
+    );
+    return result.rows;
   },
 
-  update: (id, data) => {
-    const index = users.findIndex((u) => u.id === id);
-    if (index === -1) return null;
-    users[index] = { ...users[index], ...data, updatedAt: new Date().toISOString() };
-    return users[index];
+  findById: async (id) => {
+    const result = await db.query(
+      'SELECT id, name, email, created_at AS "createdAt" FROM users WHERE id = $1',
+      [id]
+    );
+    return result.rows[0] || null;
   },
 
-  delete: (id) => {
-    const index = users.findIndex((u) => u.id === id);
-    if (index === -1) return false;
-    users.splice(index, 1);
-    return true;
+  findByEmail: async (email) => {
+    const result = await db.query(
+      'SELECT id, name, email, created_at AS "createdAt" FROM users WHERE email = $1',
+      [email]
+    );
+    return result.rows[0] || null;
+  },
+
+  create: async ({ name, email }) => {
+    const result = await db.query(
+      'INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id, name, email, created_at AS "createdAt"',
+      [name, email]
+    );
+    return result.rows[0];
+  },
+
+  update: async (id, data) => {
+    const fields = [];
+    const values = [];
+
+    if (data.name) {
+      values.push(data.name);
+      fields.push(`name = $${values.length}`);
+    }
+
+    if (data.email) {
+      values.push(data.email);
+      fields.push(`email = $${values.length}`);
+    }
+
+    if (fields.length === 0) {
+      return UserModel.findById(id);
+    }
+
+    values.push(id);
+    const result = await db.query(
+      `UPDATE users SET ${fields.join(', ')} WHERE id = $${values.length} RETURNING id, name, email, created_at AS "createdAt"`,
+      values
+    );
+    return result.rows[0] || null;
+  },
+
+  delete: async (id) => {
+    const result = await db.query('DELETE FROM users WHERE id = $1 RETURNING id', [id]);
+    return result.rowCount > 0;
   },
 };
 

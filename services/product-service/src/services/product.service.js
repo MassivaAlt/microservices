@@ -3,30 +3,34 @@
 const ProductModel = require('../models/product.model');
 
 const ProductService = {
-  getAllProducts: () => {
+  getAllProducts: async () => {
     return ProductModel.findAll();
   },
 
-  getProductById: (id) => {
-    const product = ProductModel.findById(id);
+  getProductById: async (id) => {
+    const product = await ProductModel.findById(id);
     if (!product) throw { status: 404, message: `Product with id "${id}" not found` };
     return product;
   },
 
-  createProduct: ({ name, price, description }) => {
-    if (!name || !price) throw { status: 400, message: 'Name and price are required' };
+  createProduct: async ({ name, price, description, stock }) => {
+    if (!name || price === undefined) throw { status: 400, message: 'Name and price are required' };
 
-    return ProductModel.create({ name, price, description });
+    return ProductModel.create({ name, price, description, stock });
   },
 
-  updateProduct: (id, data) => {
-    ProductService.getProductById(id);
-    return ProductModel.update(id, data);
+  updateProduct: async (id, data) => {
+    await ProductService.getProductById(id);
+    const updatedProduct = await ProductModel.update(id, data);
+    if (!updatedProduct) throw { status: 404, message: `Product with id "${id}" not found` };
+    return updatedProduct;
   },
 
-  deleteProduct: (id) => {
-    ProductService.getProductById(id);
-    return ProductModel.delete(id);
+  deleteProduct: async (id) => {
+    await ProductService.getProductById(id);
+    const deleted = await ProductModel.delete(id);
+    if (!deleted) throw { status: 404, message: `Product with id "${id}" not found` };
+    return deleted;
   },
 };
 

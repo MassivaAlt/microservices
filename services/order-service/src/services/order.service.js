@@ -3,30 +3,34 @@
 const OrderModel = require('../models/order.model');
 
 const OrderService = {
-  getAllOrders: () => {
+  getAllOrders: async () => {
     return OrderModel.findAll();
   },
 
-  getOrderById: (id) => {
-    const order = OrderModel.findById(id);
+  getOrderById: async (id) => {
+    const order = await OrderModel.findById(id);
     if (!order) throw { status: 404, message: `Order with id "${id}" not found` };
     return order;
   },
 
-  createOrder: ({ userId, productId, quantity }) => {
-    if (!userId || !productId || !quantity) throw { status: 400, message: 'userId, productId and quantity are required' };
+  createOrder: async ({ userId, productId, quantity }) => {
+    if (!userId || !productId || quantity === undefined) throw { status: 400, message: 'userId, productId and quantity are required' };
 
     return OrderModel.create({ userId, productId, quantity });
   },
 
-  updateOrder: (id, data) => {
-    OrderService.getOrderById(id);
-    return OrderModel.update(id, data);
+  updateOrder: async (id, data) => {
+    await OrderService.getOrderById(id);
+    const updatedOrder = await OrderModel.update(id, data);
+    if (!updatedOrder) throw { status: 404, message: `Order with id "${id}" not found` };
+    return updatedOrder;
   },
 
-  deleteOrder: (id) => {
-    OrderService.getOrderById(id);
-    return OrderModel.delete(id);
+  deleteOrder: async (id) => {
+    await OrderService.getOrderById(id);
+    const deleted = await OrderModel.delete(id);
+    if (!deleted) throw { status: 404, message: `Order with id "${id}" not found` };
+    return deleted;
   },
 };
 

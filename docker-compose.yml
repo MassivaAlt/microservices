@@ -1,4 +1,4 @@
-version: "3.8"
+
 
 services:
   api-gateway:
@@ -93,7 +93,8 @@ services:
     restart: unless-stopped
 
   postgres:
-    image: postgres:15-alpine
+    image: postgres:15
+    container_name: postgres
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -108,6 +109,7 @@ services:
       start_period: 10s
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     restart: unless-stopped
 
 volumes:

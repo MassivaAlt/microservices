@@ -1,36 +1,65 @@
-// product-service/src/models/product.model.js
-
-const { v4: uuidv4 } = require('uuid');
-
-// Demo data
-let products = [
-  { id: uuidv4(), name: 'Laptop', price: 999.99, description: 'High-performance laptop', createdAt: new Date().toISOString() },
-  { id: uuidv4(), name: 'Mouse', price: 29.99, description: 'Wireless mouse', createdAt: new Date().toISOString() },
-];
+const db = require('../db');
 
 const ProductModel = {
-  findAll: () => products,
-
-  findById: (id) => products.find((p) => p.id === id),
-
-  create: ({ name, price, description }) => {
-    const product = { id: uuidv4(), name, price, description, createdAt: new Date().toISOString() };
-    products.push(product);
-    return product;
+  findAll: async () => {
+    const result = await db.query(
+      'SELECT id, name, price, stock, created_at AS "createdAt" FROM products ORDER BY created_at DESC'
+    );
+    return result.rows;
   },
 
-  update: (id, data) => {
-    const index = products.findIndex((p) => p.id === id);
-    if (index === -1) return null;
-    products[index] = { ...products[index], ...data, updatedAt: new Date().toISOString() };
-    return products[index];
+  findById: async (id) => {
+    const result = await db.query(
+      'SELECT id, name, price, stock, created_at AS "createdAt" FROM products WHERE id = $1',
+      [id]
+    );
+    return result.rows[0] || null;
   },
 
-  delete: (id) => {
-    const index = products.findIndex((p) => p.id === id);
-    if (index === -1) return false;
-    products.splice(index, 1);
-    return true;
+  create: async ({ name, price, description, stock }) => {
+    const result = await db.query(
+      'INSERT INTO products (name, price, stock, description) VALUES ($1, $2, $3, $4) RETURNING id, name, price, stock, created_at AS "createdAt"',
+      [name, price, stock || 0, description || null]
+    );
+    return result.rows[0];
+  },
+
+  update: async (id, data) => {
+    const fields = [];
+    const values = [];
+
+    if (data.name) {
+      values.push(data.name);
+      fields.push(`name = $${values.length}`);
+    }
+    if (data.price !== undefined) {
+      values.push(data.price);
+      fields.push(`price = $${values.length}`);
+    }
+    if (data.stock !== undefined) {
+      values.push(data.stock);
+      fields.push(`stock = $${values.length}`);
+    }
+    if (data.description !== undefined) {
+      values.push(data.description);
+      fields.push(`description = $${values.length}`);
+    }
+
+    if (fields.length === 0) {
+      return ProductModel.findById(id);
+    }
+
+    values.push(id);
+    const result = await db.query(
+      `UPDATE products SET ${fields.join(', ')} WHERE id = $${values.length} RETURNING id, name, price, stock, created_at AS "createdAt"`,
+      values
+    );
+    return result.rows[0] || null;
+  },
+
+  delete: async (id) => {
+    const result = await db.query('DELETE FROM products WHERE id = $1 RETURNING id', [id]);
+    return result.rowCount > 0;
   },
 };
 
