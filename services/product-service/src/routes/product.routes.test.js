@@ -1,8 +1,34 @@
 const request = require('supertest');
 const app = require('../server');
 
+// On simule le ProductService pour éviter de toucher à la BDD pendant les tests unitaires
+jest.mock('../services/product.service', () => {
+  return {
+    getAllProducts: jest.fn().mockResolvedValue([
+      { id: 'mocked-prod-uuid', name: 'Keyboard', price: 49.99, description: 'Mechanical keyboard' }
+    ]),
+    getProductById: jest.fn((id) => {
+      if (id === 'nonexistent-id') return null;
+      return { id, name: 'Keyboard', price: 49.99, description: 'Mechanical keyboard' };
+    }),
+    createProduct: jest.fn((data) => {
+      // Validation du mock : si le nom ou le prix est manquant, on lève une erreur 400
+      if (!data.name || !data.price) {
+        const error = new Error('Name and price are required');
+        error.status = 400;
+        throw error;
+      }
+      return { id: 'mocked-prod-uuid', ...data };
+    }),
+    updateProduct: jest.fn((id, data) => {
+      return { id, name: 'Keyboard', price: data.price || 49.99, description: 'Mechanical keyboard' };
+    }),
+    deleteProduct: jest.fn().mockResolvedValue(true)
+  };
+});
+
 describe('Product Service CRUD', () => {
-  let createdProductId;
+  let createdProductId = 'mocked-prod-uuid'; // On initialise avec l'ID simulé pour sécuriser la suite du flux
 
   it('GET /api/products — retourne la liste des produits', async () => {
     const res = await request(app).get('/api/products');

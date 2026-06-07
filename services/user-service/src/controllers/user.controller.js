@@ -15,14 +15,17 @@ const UserController = {
   },
 
   // GET /api/users/:id
-  getById: async (req, res, next) => {
-    try {
-      const user = await UserService.getUserById(req.params.id);
-      res.json({ success: true, data: user });
-    } catch (err) {
-      next(err);
+getById: async (req, res, next) => {
+  try {
+    const user = await UserService.getUserById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' }); // <--- Très important pour le test 404 !
     }
-  },
+    res.json({ success: true, data: user });
+  } catch (err) {
+    next(err);
+  }
+},
 
   // POST /api/users
   create: async (req, res, next) => {

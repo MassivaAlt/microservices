@@ -12,14 +12,21 @@ const ProductController = {
     }
   },
 
-  getById: async (req, res, next) => {
-    try {
-      const product = await ProductService.getProductById(req.params.id);
-      res.json({ success: true, data: product });
-    } catch (err) {
-      next(err);
+ // Exemple de ce à quoi doit ressembler ta méthode dans product.controller.js
+getById: async (req, res, next) => {
+  try {
+    const product = await ProductService.getProductById(req.params.id);
+    
+    // Si le produit n'existe pas, on renvoie une 404
+    if (!product) {
+      return res.status(404).json({ success: false, error: 'Product not found' });
     }
-  },
+
+    res.json({ success: true, data: product });
+  } catch (err) {
+    next(err);
+  }
+},
 
   create: async (req, res, next) => {
     try {

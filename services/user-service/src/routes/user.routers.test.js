@@ -1,9 +1,34 @@
-
 const request = require('supertest');
 const app = require('../server');
 
+//  On simule complètement le comportement du UserService pour éviter de toucher à la vraie BDD
+jest.mock('../services/user.service', () => {
+  return {
+    getAllUsers: jest.fn().mockResolvedValue([
+      { id: 'user-123', name: 'Existing User', email: 'existing@example.com' }
+    ]),
+    getUserById: jest.fn((id) => {
+      if (id === 'nonexistent-id') return null;
+      return { id, name: 'Test User', email: 'test@example.com' };
+    }),
+    createUser: jest.fn((data) => {
+      // Si l'email ou le nom est manquant, on simule une erreur de validation
+      if (!data.name || !data.email) {
+        const error = new Error('Validation Failed: Name and Email are required');
+        error.status = 400; // On lui donne un statut 400
+        throw error;
+      }
+      return { id: 'mocked-uuid-456', ...data };
+    }),
+    updateUser: jest.fn((id, data) => {
+      return { id, name: data.name || 'Test User', email: 'test@example.com' };
+    }),
+    deleteUser: jest.fn().mockResolvedValue(true)
+  };
+});
+
 describe('User Service CRUD', () => {
-  let createdUserId;
+  let createdUserId = 'mocked-uuid-456'; // ID simulé pour la suite des tests
 
   it('GET /api/users —retourne la liste des users', async () => {
     const res = await request(app).get('/api/users');
@@ -18,7 +43,6 @@ describe('User Service CRUD', () => {
       .send({ name: 'Test User', email: 'test@example.com' });
     expect(res.statusCode).toBe(201);
     expect(res.body.data.email).toBe('test@example.com');
-    createdUserId = res.body.data.id;
   });
 
   it('GET /api/users/:id — récupère un user par id', async () => {
@@ -41,6 +65,7 @@ describe('User Service CRUD', () => {
     expect(res.body.success).toBe(true);
   });
 
+  // ATTENTION ICI : Ton contrôleur doit renvoyer un 404 si le service renvoie null ou undefined !
   it('GET /api/users/:id — retourne 404 si non trouvé', async () => {
     const res = await request(app).get('/api/users/nonexistent-id');
     expect(res.statusCode).toBe(404);

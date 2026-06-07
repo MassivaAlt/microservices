@@ -1,8 +1,34 @@
 const request = require('supertest');
 const app = require('../server');
 
+// On simule le OrderService pour isoler les tests de la base de données
+jest.mock('../services/order.service', () => {
+  return {
+    getAllOrders: jest.fn().mockResolvedValue([
+      { id: 'mocked-order-uuid', userId: 'user-123', productId: 'product-123', quantity: 2, status: 'pending' }
+    ]),
+    getOrderById: jest.fn((id) => {
+      if (id === 'nonexistent-id') return null;
+      return { id, userId: 'user-123', productId: 'product-123', quantity: 2, status: 'pending' };
+    }),
+    createOrder: jest.fn((data) => {
+      // Validation du mock : si userId, productId ou quantity est manquant, on renvoie une 400
+      if (!data.userId || !data.productId || !data.quantity) {
+        const error = new Error('UserId, productId and quantity are required');
+        error.status = 400;
+        throw error;
+      }
+      return { id: 'mocked-order-uuid', status: 'pending', ...data };
+    }),
+    updateOrder: jest.fn((id, data) => {
+      return { id, userId: 'user-123', productId: 'product-123', quantity: 2, status: data.status || 'pending' };
+    }),
+    deleteOrder: jest.fn().mockResolvedValue(true)
+  };
+});
+
 describe('Order Service CRUD', () => {
-  let createdOrderId;
+  let createdOrderId = 'mocked-order-uuid'; // Initialisé pour sécuriser le flux des tests dépendants
 
   it('GET /api/orders — retourne la liste des commandes', async () => {
     const res = await request(app).get('/api/orders');

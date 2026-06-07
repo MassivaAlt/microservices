@@ -15,6 +15,9 @@ const OrderController = {
   getById: async (req, res, next) => {
     try {
       const order = await OrderService.getOrderById(req.params.id);
+      if (!order) {
+        return res.status(404).json({ success: false, error: 'Order not found' });
+      }
       res.json({ success: true, data: order });
     } catch (err) {
       next(err);
