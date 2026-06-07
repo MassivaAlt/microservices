@@ -274,3 +274,63 @@
 [1mTime:[22m        2.805 s
 [2mRan all test suites[22m[2m.[22m
 [1mForce exiting Jest: [22mHave you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2msrc/routes/[22m[1mhealth.test.js[22m
+  API Gateway
+    [32m√[39m [2mGET / — retourne les infos du gateway (52 ms)[22m
+    [32m√[39m [2mGET /health — retourne le statut du gateway (44 ms)[22m
+    [32m√[39m [2mGET /unknown — retourne 404 (8 ms)[22m
+
+[1mTest Suites: [22m[1m[32m1 passed[39m[22m, 1 total
+[1mTests:       [22m[1m[32m3 passed[39m[22m, 3 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        0.937 s, estimated 1 s
+[2mRan all test suites[22m[2m.[22m
+[1mForce exiting Jest: [22mHave you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2msrc/routes/[22m[1muser.routers.test.js[22m
+  User Service CRUD
+    [32m√[39m [2mGET /api/users —retourne la liste des users (50 ms)[22m
+    [32m√[39m [2mPOST /api/users -crée un nouvel utilisateur (19 ms)[22m
+    [32m√[39m [2mGET /api/users/:id — récupère un user par id (6 ms)[22m
+    [32m√[39m [2mPUT /api/users/:id — met à jour un user (7 ms)[22m
+    [32m√[39m [2mDELETE /api/users/:id — supprime un user (6 ms)[22m
+    [32m√[39m [2mGET /api/users/:id — retourne 404 si non trouvé (6 ms)[22m
+    [32m√[39m [2mPOST /api/users — retourne 400 si champs manquants (25 ms)[22m
+
+[1mTest Suites: [22m[1m[32m1 passed[39m[22m, 1 total
+[1mTests:       [22m[1m[32m7 passed[39m[22m, 7 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        1.028 s
+[2mRan all test suites[22m[2m.[22m
+[1mForce exiting Jest: [22mHave you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2msrc/routes/[22m[1mproduct.routes.test.js[22m
+  Product Service CRUD
+    [32m√[39m [2mGET /api/products — retourne la liste des produits (43 ms)[22m
+    [32m√[39m [2mPOST /api/products — crée un nouveau produit (19 ms)[22m
+    [32m√[39m [2mGET /api/products/:id — récupère le produit créé (8 ms)[22m
+    [32m√[39m [2mPUT /api/products/:id — met à jour le produit (7 ms)[22m
+    [32m√[39m [2mDELETE /api/products/:id — supprime le produit (7 ms)[22m
+    [32m√[39m [2mGET /api/products/:id — retourne 404 si non trouvé (6 ms)[22m
+    [32m√[39m [2mPOST /api/products — retourne 400 si champs manquants (22 ms)[22m
+
+[1mTest Suites: [22m[1m[32m1 passed[39m[22m, 1 total
+[1mTests:       [22m[1m[32m7 passed[39m[22m, 7 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        0.694 s, estimated 1 s
+[2mRan all test suites[22m[2m.[22m
+[1mForce exiting Jest: [22mHave you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [2msrc/routes/[22m[1morder.routes.test.js[22m
+  Order Service CRUD
+    [32m√[39m [2mGET /api/orders — retourne la liste des commandes (41 ms)[22m
+    [32m√[39m [2mPOST /api/orders — crée une commande (19 ms)[22m
+    [32m√[39m [2mGET /api/orders/:id — récupère la commande (6 ms)[22m
+    [32m√[39m [2mPUT /api/orders/:id — met à jour la commande (8 ms)[22m
+    [32m√[39m [2mDELETE /api/orders/:id — supprime la commande (7 ms)[22m
+    [32m√[39m [2mGET /api/orders/:id — retourne 404 si non trouvé (7 ms)[22m
+    [32m√[39m [2mPOST /api/orders — retourne 400 si champs manquants (23 ms)[22m
+
+[1mTest Suites: [22m[1m[32m1 passed[39m[22m, 1 total
+[1mTests:       [22m[1m[32m7 passed[39m[22m, 7 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        0.704 s, estimated 3 s
+[2mRan all test suites[22m[2m.[22m
+[1mForce exiting Jest: [22mHave you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
