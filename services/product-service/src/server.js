@@ -3,15 +3,23 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const morgan = require('morgan');
+const config = require('./config');
+const logger = require('./logger');
 const productRoutes = require('./routes/product.routes');
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = config.port;
 
 //    Middlewares                                                    
-app.use(cors());
-app.use(morgan('dev'));
+app.use(helmet());
+app.use(cors({ origin: config.corsOrigin }));
+app.use(morgan('dev', {
+  stream: {
+    write: (message) => logger.info(message.trim()),
+  },
+}));
 app.use(express.json());
 
 //    Health check (utilisé par le Gateway)                         
@@ -29,15 +37,18 @@ app.use((req, res) => {
 
 //    Error handler                                                  
 app.use((err, req, res, next) => {
-  console.error(`[product-service ERROR] ${err.message}`);
+  logger.error(err.message, {
+    route: req.originalUrl,
+    method: req.method,
+    status: err.status || 500,
+    stack: err.stack,
+  });
   res.status(err.status || 500).json({ success: false, error: err.message || 'Internal Server Error' });
 });
 
 //    Start                                                          
 const server = app.listen(PORT, () => {
-  console.log(`📦 Product Service running on http://localhost:${PORT}`);
-});
-
+  logger.info(`Product Service running on port ${PORT}`);
 // Graceful shutdown
 const shutdown = (signal) => {
   console.log(`Received ${signal} - closing product-service`);

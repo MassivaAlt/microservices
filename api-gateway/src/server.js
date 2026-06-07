@@ -9,6 +9,7 @@ const rateLimit = require('express-rate-limit');
 const { v4: uuidv4 } = require('uuid');
 
 const config = require('./config');
+const logger = require('./logger');
 const proxyRoutes = require('./routes/proxy');
 const healthRoutes = require('./routes/health');
 const errorHandler = require('./middlewares/errorHandler');
@@ -17,18 +18,10 @@ const app = express();
 
 //    Middlewares globaux                                            
 app.use(helmet()); // Security headers
-
-// CORS: default to permissive unless CORS_ORIGIN env provided
-const corsOptions = {};
-if (process.env.CORS_ORIGIN) {
-  corsOptions.origin = process.env.CORS_ORIGIN.split(',');
-} else {
-  corsOptions.origin = true;
-}
-app.use(cors(corsOptions));                        // Autorise les requêtes cross-origin
+app.use(cors({ origin: config.corsOrigin }));
 
 // Rate limiting
-const limiter = rateLimit({ windowMs: 60 * 1000, max: Number(process.env.RATE_LIMIT_MAX) || 100 });
+const limiter = rateLimit({ windowMs: 60 * 1000, max: config.rateLimitMax });
 app.use(limiter);
 
 // Correlation ID
@@ -38,14 +31,24 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(morgan('combined'));                 // Logs HTTP dans le terminal
+app.use(morgan('combined', {
+  stream: {
+    write: (message) => logger.info(message.trim(), { correlationId: null }),
+  },
+}));
 app.use(express.json());               // Parse le body JSON des requêtes
 
 // Request timeout (ms)
-const REQUEST_TIMEOUT_MS = Number(process.env.REQUEST_TIMEOUT_MS) || 10000;
+const REQUEST_TIMEOUT_MS = config.requestTimeoutMs;
 app.use((req, res, next) => {
   req.setTimeout(REQUEST_TIMEOUT_MS, () => {
-    console.warn(`[Gateway] request timed out after ${REQUEST_TIMEOUT_MS}ms - ${req.method} ${req.url}`);
+    logger.warn('Gateway request timed out', {
+      method: req.method,
+      url: req.url,
+      timeoutMs: REQUEST_TIMEOUT_MS,
+      correlationId: req.correlationId,
+    });
+
     if (!res.headersSent) {
       res.status(504).json({ success: false, error: 'Gateway timeout' });
     }
@@ -80,23 +83,23 @@ app.use(errorHandler);
 
 //    Démarrage du serveur                                           
 const server = app.listen(config.port, () => {
-  console.log(`\n API Gateway running on http://localhost:${config.port}`);
-  console.log(`  Proxying to:`);
-  console.log(`   Users    → ${config.services.user}`);
-  console.log(`   Products → ${config.services.product}`);
-  console.log(`   Orders   → ${config.services.order}\n`);
+  logger.info(`API Gateway running on http://localhost:${config.port}`, { service: config.serviceName });
+  logger.info('Proxy targets loaded', {
+    user: config.services.user,
+    product: config.services.product,
+    order: config.services.order,
+  });
 });
 
 // Graceful shutdown
 const shutdown = (signal) => {
-  console.log(`Received ${signal} - closing api-gateway`);
+  logger.info(`Received ${signal} - closing api-gateway`, { service: config.serviceName });
   server.close(() => {
-    console.log('API Gateway stopped');
-    process.exit(0);
+    logger.info('API Gateway stopped', { service: config.serviceName });
   });
 
   setTimeout(() => {
-    console.error('Forcing shutdown');
+    logger.error('Forcing shutdown', { service: config.serviceName });
     process.exit(1);
   }, 30000);
 };

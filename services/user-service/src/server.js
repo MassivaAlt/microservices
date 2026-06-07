@@ -1,15 +1,23 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const morgan = require('morgan');
+const config = require('./config');
+const logger = require('./logger');
 const userRoutes = require('./routes/user.routes');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = config.port;
 
 // middlewares
-app.use(cors());
-app.use(morgan('dev'));
+app.use(helmet());
+app.use(cors({ origin: config.corsOrigin }));
+app.use(morgan('dev', {
+  stream: {
+    write: (message) => logger.info(message.trim()),
+  },
+}));
 app.use(express.json());
 
 // health check
@@ -31,7 +39,12 @@ app.use((req, res) => {
 
 // error handler
 app.use((err, req, res, next) => {
-  console.error(`[user-service ERROR] ${err.message}`);
+  logger.error(err.message, {
+    route: req.originalUrl,
+    method: req.method,
+    status: err.status || 500,
+    stack: err.stack,
+  });
   res.status(err.status || 500).json({
     success: false,
     error: err.message || 'Internal Server Error'
@@ -40,7 +53,7 @@ app.use((err, req, res, next) => {
 
 // start
 const server = app.listen(PORT, () => {
-  console.log(`User Service running on port ${PORT}`);
+  logger.info(`User Service running on port ${PORT}`);
 });
 
 // Graceful shutdown
