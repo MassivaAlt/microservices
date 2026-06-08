@@ -1,8 +1,9 @@
 const request = require('supertest');
 const app = require('../server');
 const jwt = require('jsonwebtoken'); 
+const crypto = require('crypto'); // 
 
-
+// On simule le OrderService pour isoler les tests de la base de données
 jest.mock('../services/order.service', () => {
   return {
     getAllOrders: jest.fn().mockResolvedValue([
@@ -13,7 +14,6 @@ jest.mock('../services/order.service', () => {
       return { id, userId: 'user-123', productId: 'product-123', quantity: 2, status: 'pending' };
     }),
     createOrder: jest.fn((data) => {
-      
       if (!data.userId || !data.productId || !data.quantity) {
         const error = new Error('UserId, productId and quantity are required');
         error.status = 400;
@@ -30,11 +30,13 @@ jest.mock('../services/order.service', () => {
 
 describe('Order Service CRUD', () => {
   let createdOrderId = 'mocked-order-uuid'; 
-  const TEST_SECRET = 'ma_super_cle_secrete_miage';
+  
+  
+  const TEST_SECRET = crypto.randomBytes(32).toString('hex'); 
   let authToken;
 
-  
   beforeAll(() => {
+    // Injection dynamique du secret généré pour le middleware d'authentification
     process.env.JWT_SECRET = TEST_SECRET;
     authToken = jwt.sign({ id: 'user-123', email: 'test@example.com' }, TEST_SECRET);
   });
@@ -101,7 +103,6 @@ describe('Order Service CRUD', () => {
     expect(res.statusCode).toBe(400);
   });
 
-  
   it('GET /api/orders — retourne 401 si aucun token n\'est fourni', async () => {
     const res = await request(app).get('/api/orders'); 
     expect(res.statusCode).toBe(401);
